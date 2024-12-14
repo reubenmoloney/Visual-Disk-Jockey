@@ -4,6 +4,7 @@ import pygame
 import math
 import multiprocessing
 from scipy.fft import fft
+import random
 
 
 
@@ -76,32 +77,56 @@ class SineWave:
     
     def useNoteForfrequency(self, note):
         if note == "A":
-            self.frequency = 440
+            self.frequency = 11
         elif note == "A#":
-            self.frequency = 466
+            self.frequency = 13
         elif note == "B":
-            self.frequency = 493
+            self.frequency = 15
         elif note == "C":
-            self.frequency = 523
+            self.frequency = 17
         elif note == "C#":
-            self.frequency = 554
+            self.frequency = 19
         elif note == "D":
-            self.frequency = 587
+            self.frequency = 5
         elif note == "D#":
-            self.frequency = 622
+            self.frequency = 7
         elif note == "E":
-            self.frequency = 659
+            self.frequency = 9
         elif note == "F":
-            self.frequency = 698
+            self.frequency = 21
         elif note == "F#":
-            self.frequency = 739
+            self.frequency = 23
         elif note == "G":
-            self.frequency = 783
+            self.frequency = 25
         else:# G#
-            self.frequency = 830
+            self.frequency = 27
 
+class Circle:
+    def __init__(self, center, radius, squiggle_amount, point_count, color):
+        self.cx, self.cy = center
+        self.radius = radius
+        self.squiggle_amount = squiggle_amount
+        self.point_count = point_count
+        self.color = color
+    
+    def setSquiggleAmount(self, squiggle_amount):
+        self.squiggle_amount = squiggle_amount
+    
+    def setRadius(self, radius):
+        self.radius = radius
+    
+    def draw(self, screen):
+        points = []
+        for i in range(self.point_count):
+            angle = 2 * math.pi * i / self.point_count
+            r = self.radius + random.uniform(-self.squiggle_amount, self.squiggle_amount)  # Randomize radius
+            x = self.cx + r * math.cos(angle)
+            y = self.cy + r * math.sin(angle)
+            points.append((x, y))
 
-        
+        # Draw lines between points
+        for i in range(len(points)):
+            pygame.draw.line(screen, self.color, points[i], points[(i + 1) % len(points)], 2)
 
 WIDTH, HEIGHT = 1920, 1080
 
@@ -110,6 +135,7 @@ objects = [
     SineWave(100, 0.02, HEIGHT // 2, WIDTH, [255,255,255]),
     Star(WIDTH // 3, HEIGHT // 2, 100, 100, 0, 1, [255,0,0], [0,255,0]), 
     Star((WIDTH // 3)*2, HEIGHT // 2, 100, 100, 0, 1, [255,1,0], [0,255,0]),
+    Circle((WIDTH // 2, HEIGHT // 2), 100, 0, 150, [0,0,255])
 ]
         
 
@@ -129,12 +155,6 @@ def display_window():
     #global roation
     rotRight = 0
     rotLeft = 360
-
-    # star colors array
-    rectColors = [
-        [50,50,50],
-        [150,150,150]
-    ]
 
 
 
@@ -250,9 +270,12 @@ def display_window():
                 object.setRotation(rotLeft)
                 object.setScale(1+3*volume)
             elif type(object) is SineWave:
-                object.setAmplitude(25 + (75*volume))
-                # object.setFrequency(frequency/100000)
-                object.useNoteForfrequency(note)
+                object.setAmplitude(volume*100)
+                object.setFrequency(frequency/100)
+                #object.useNoteForfrequency(note)
+            elif type(object) is Circle:
+                object.setRadius(volume*125 + 75)
+                object.setSquiggleAmount(volume*100)
 
         # background color
         screen.fill(backgroundColor)
