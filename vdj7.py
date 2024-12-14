@@ -5,6 +5,7 @@ import math
 import multiprocessing
 from scipy.fft import fft
 import random
+import pygame_gui
 
 
 
@@ -293,10 +294,192 @@ def display_window():
     p.terminate()
     pygame.quit()
 
+global form_elements
+
+def display_ui():
+    pygame.init()
+
+    # Screen dimensions
+    SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pygame.display.set_caption("Add Star, Circle, and Sine Wave Forms")
+
+    # Set up manager for pygame_gui
+    manager = pygame_gui.UIManager((SCREEN_WIDTH, SCREEN_HEIGHT))
+    clock = pygame.time.Clock()
+
+    # Initial states
+    running = True
+    show_star_form = False
+    show_circle_form = False
+    show_sine_wave_form = False
+
+    # Colors
+    WHITE = (255, 255, 255)
+
+    # Create the "Add Star" button
+    add_star_button = pygame_gui.elements.UIButton(
+        relative_rect=pygame.Rect((50, 50), (100, 50)),
+        text="Add Star",
+        manager=manager
+    )
+
+    # Create the "Add Circle" button
+    add_circle_button = pygame_gui.elements.UIButton(
+        relative_rect=pygame.Rect((200, 50), (100, 50)),
+        text="Add Circle",
+        manager=manager
+    )
+
+    # Create the "Add Sine Wave" button
+    add_sine_wave_button = pygame_gui.elements.UIButton(
+        relative_rect=pygame.Rect((350, 50), (120, 50)),
+        text="Add Sine Wave",
+        manager=manager
+    )
+
+    # Placeholder for form elements
+    form_elements = {}
+
+    def create_star_form():
+        """Create the form for adding a star."""
+        form_elements.clear()
+
+        labels = ["x", "y", "width", "height", "rotation", "scale", "color1", "color2"]
+        y_offset = 120
+
+        for label in labels:
+            form_elements[label] = {
+                "label": pygame_gui.elements.UILabel(
+                    relative_rect=pygame.Rect((50, y_offset), (100, 30)),
+                    text=label,
+                    manager=manager
+                ),
+                "input": pygame_gui.elements.UITextEntryLine(
+                    relative_rect=pygame.Rect((160, y_offset), (200, 30)),
+                    manager=manager
+                )
+            }
+            y_offset += 40
+
+        # Submit button
+        form_elements["submit"] = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect((160, y_offset), (100, 40)),
+            text="Submit",
+            manager=manager
+        )
+
+    def create_circle_form():
+        """Create the form for adding a circle."""
+        form_elements.clear()
+
+        labels = ["center", "radius", "squiggle_amount", "point_count", "color"]
+        y_offset = 120
+
+        for label in labels:
+            form_elements[label] = {
+                "label": pygame_gui.elements.UILabel(
+                    relative_rect=pygame.Rect((50, y_offset), (100, 30)),
+                    text=label,
+                    manager=manager
+                ),
+                "input": pygame_gui.elements.UITextEntryLine(
+                    relative_rect=pygame.Rect((160, y_offset), (200, 30)),
+                    manager=manager
+                )
+            }
+            y_offset += 40
+
+        # Submit button
+        form_elements["submit"] = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect((160, y_offset), (100, 40)),
+            text="Submit",
+            manager=manager
+        )
+
+    def create_sine_wave_form():
+        """Create the form for adding a sine wave."""
+        form_elements.clear()
+
+        labels = ["height", "width", "color"]
+        y_offset = 120
+
+        for label in labels:
+            form_elements[label] = {
+                "label": pygame_gui.elements.UILabel(
+                    relative_rect=pygame.Rect((50, y_offset), (100, 30)),
+                    text=label,
+                    manager=manager
+                ),
+                "input": pygame_gui.elements.UITextEntryLine(
+                    relative_rect=pygame.Rect((160, y_offset), (200, 30)),
+                    manager=manager
+                )
+            }
+            y_offset += 40
+
+        # Submit button
+        form_elements["submit"] = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect((160, y_offset), (100, 40)),
+            text="Submit",
+            manager=manager
+        )
+
+    while running:
+        time_delta = clock.tick(60) / 1000.0
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+            if event.type == pygame.USEREVENT:
+                if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                    if event.ui_element == add_star_button:
+                        show_star_form = True
+                        show_circle_form = False
+                        show_sine_wave_form = False
+                        create_star_form()
+                    elif event.ui_element == add_circle_button:
+                        show_circle_form = True
+                        show_star_form = False
+                        show_sine_wave_form = False
+                        create_circle_form()
+                    elif event.ui_element == add_sine_wave_button:
+                        show_sine_wave_form = True
+                        show_star_form = False
+                        show_circle_form = False
+                        create_sine_wave_form()
+                    elif (show_star_form or show_circle_form or show_sine_wave_form) and event.ui_element == form_elements.get("submit", {}).get("input"):
+                        # Handle form submission
+                        data = {}
+                        for key, elements in form_elements.items():
+                            if key != "submit":
+                                data[key] = elements["input"].get_text()
+                        print("Form Data:", data)
+                        show_star_form = False
+                        show_circle_form = False
+                        show_sine_wave_form = False
+
+            # Pass events to the UI manager
+            manager.process_events(event)
+
+        # Clear the screen
+        screen.fill(WHITE)
+
+        # Draw the UI
+        manager.update(time_delta)
+        manager.draw_ui(screen)
+
+        # Update the display
+        pygame.display.flip()
+
+    pygame.quit()
+
 
 if __name__ == "__main__":
     process_1 = multiprocessing.Process(target=display_window)
-
+    process_2 = multiprocessing.Process(target=display_ui)
     process_1.start()
-
+    process_2.start()
     process_1.join()
+    process_2.join()
