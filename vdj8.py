@@ -3,6 +3,7 @@ import numpy as np
 import pygame
 import math
 import multiprocessing
+from multiprocessing import Manager
 from scipy.fft import fft
 import random
 import pygame_gui
@@ -44,7 +45,7 @@ class Star:
             pygame.draw.rect(rect_surface, colors[loop], (0, 0, self.width, self.height))
 
             # Rotate and scale the rectangle
-            transformed_surface = pygame.transform.rotozoom(rect_surface, (self.rotation + 45*loop), self.scale)
+            transformed_surface = pygame.transform.rotozoom(rect_surface, (self.rotation + loop*45), self.scale)
 
             # Get the new rectangle for positioning
             rect_center = (self.x, self.y)
@@ -133,43 +134,9 @@ WIDTH, HEIGHT = 1920, 1080
 
 # create objects
 #objects = [    SineWave(100, 0.02, HEIGHT // 2, WIDTH, [255,255,255]),    Star(WIDTH // 3, HEIGHT // 2, 100, 100, 0, 1, [255,0,0], [0,255,0]),    Star((WIDTH // 3)*2, HEIGHT // 2, 100, 100, 0, 1, [255,1,0], [0,255,0]),    Circle((WIDTH // 2, HEIGHT // 2), 100, 0, 150, [0,0,255])]
-global objects
-objects = []
 
-def addObject(objectData):
-    print("adding object to array")
-    objectColor = [int(objectData["colorR"]), int(objectData["colorG"]), int(objectData["colorB"])]
-    if objectData["name"] == "Star":
-        objects.append(Star(
-            int(objectData["x"]), # x pos
-            int(objectData["y"]), # y pos
-            int(objectData["width"]), # width
-            int(objectData["height"]), # height
-            int(objectData["rotation"]), # rotation
-            float(objectData["scale"]),# scale
-            objectColor,#color 1
-            objectColor,#color 2
-        ))
-    elif objectData["name"] == "Circle":
-        objects.append(Circle(
-            int(objectData["x"]), # x pos
-            int(objectData["y"]), # y pos
-            1,# radius
-            1,# squiggle ammount
-            150, # point count
-            objectColor
-        ))
-    elif objectData["name"] == "SineWave":
-        objects.append(SineWave(
-            0, # amplitude
-            0, #frequency
-            int(objectData["height"]), # y pos
-            int(objectData["width"]), # length(0 -> x)
-            objectColor # color
-        ))
-    print("Objects: ", objects)
 
-def display_window():
+def display_window(objects):
     # Initialize Pygame
     pygame.init()
 
@@ -294,26 +261,27 @@ def display_window():
         note = getNoteFromFrequency(frequency)
 
         # use volume to calculate stuff
-        for object in objects:
-            if type(object) is Star:
-                object.setColor([100,0,volume*255],[100,0,volume*255])
-                object.setRotation(rotLeft)
-                object.setScale(1+3*volume)
-            elif type(object) is SineWave:
-                object.setAmplitude(volume*100)
-                object.setFrequency(frequency/100)
+        for i in range(len(objects)):
+            obj = objects[i]
+            if type(obj) is Star:
+                obj.setColor([100,0,volume*255],[100,0,volume*255])
+                obj.setRotation(rotLeft)
+                obj.setScale(1+3*volume)
+            elif type(obj) is SineWave:
+                obj.setAmplitude(volume*100)
+                obj.setFrequency(frequency/100)
                 #object.useNoteForfrequency(note)
-            elif type(object) is Circle:
-                object.setRadius(volume*125 + 75)
-                object.setSquiggleAmount(volume*100)
-
+            elif type(obj) is Circle:
+                obj.setRadius(volume*125 + 75)
+                obj.setSquiggleAmount(volume*100)
+            
+            objects[i] = obj
         # background color
         screen.fill(backgroundColor)
 
         # Draw on screen
         for object in objects:
             object.draw(screen)
-            print("drawn object: ", object)
 
         # Update the display
         pygame.display.flip()
@@ -326,9 +294,41 @@ def display_window():
 
 global form_elements
 
-def display_ui():
+def display_ui(objects):
     pygame.init()
 
+    def addObject(objectData):
+        print("adding object to array")
+        objectColor = [int(objectData["colorR"]), int(objectData["colorG"]), int(objectData["colorB"])]
+        if objectData["name"] == "Star":
+            objects.append(Star(
+                int(objectData["x"]), # x pos
+                int(objectData["y"]), # y pos
+                int(objectData["width"]), # width
+                int(objectData["height"]), # height
+                int(objectData["rotation"]), # rotation
+                float(objectData["scale"]),# scale
+                objectColor,#color 1
+                objectColor,#color 2
+            ))
+        elif objectData["name"] == "Circle":
+            objects.append(Circle(
+                int(objectData["x"]), # x pos
+                int(objectData["y"]), # y pos
+                1,# radius
+                1,# squiggle ammount
+                150, # point count
+                objectColor
+            ))
+        elif objectData["name"] == "SineWave":
+            objects.append(SineWave(
+                0, # amplitude
+                0, #frequency
+                int(objectData["height"]), # y pos
+                int(objectData["width"]), # length(0 -> x)
+                objectColor # color
+            ))
+        print("Objects: ", objects)
     # Screen dimensions
     SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -534,9 +534,13 @@ def display_ui():
 
 
 if __name__ == "__main__":
-    process_1 = multiprocessing.Process(target=display_window)
-    process_2 = multiprocessing.Process(target=display_ui)
-    process_1.start()
-    process_2.start()
-    process_1.join()
-    process_2.join()
+    with Manager() as manager:
+        # Use a managed list to share data between processes
+        objects = manager.list()
+
+        process_1 = multiprocessing.Process(target=display_window, args=(objects,))
+        process_2 = multiprocessing.Process(target=display_ui, args=(objects,))
+        process_1.start()
+        process_2.start()
+        process_1.join()
+        process_2.join()
