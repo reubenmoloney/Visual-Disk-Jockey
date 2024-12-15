@@ -217,13 +217,18 @@ def display_window(objects):
 
         # Print the dominant frequency (pitch)
         # print(f"Dominant Frequency: {frequency:.2f} Hz")
+
+        # normalize rms value
+        if math.isnan(frequency):
+            frequency = 1
+
         return frequency
 
     def getNoteFromFrequency(frequency):
         # Reference frequency for A4
         A4 = 440.0
         NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-        
+
         # Calculate the number of semitones from A4
         n = 12 * math.log2(frequency / A4)
         
@@ -265,7 +270,7 @@ def display_window(objects):
         #get pitch
         frequency = getFrequency(audioData)
         
-        note = getNoteFromFrequency(frequency)
+        # note = getNoteFromFrequency(frequency)
 
         # use volume to calculate stuff
         for i in range(len(objects)):
@@ -304,7 +309,7 @@ global form_elements
 def display_ui(objects):
     pygame.init()
     pygame.display.set_icon(programIcon)
-    
+
     def addObject(objectData):
         print("adding object to array")
         objectColor = [int(objectData["colorR"]), int(objectData["colorG"]), int(objectData["colorB"])]
@@ -338,7 +343,7 @@ def display_ui(objects):
             ))
         print("Objects: ", objects)
     # Screen dimensions
-    SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
+    SCREEN_WIDTH, SCREEN_HEIGHT = 1200, 600
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("VDJ Control Panel")
 
@@ -400,16 +405,17 @@ def display_ui(objects):
 
         labels = ["x", "y", "width", "height", "rotation", "scale", "colorR", "colorG", "colorB"]
         y_offset = 120
-
+        x_offset = 600
+        
         for label in labels:
             form_elements[label] = {
                 "label": pygame_gui.elements.UILabel(
-                    relative_rect=pygame.Rect((50, y_offset), (100, 30)),
+                    relative_rect=pygame.Rect((50+x_offset, y_offset), (100, 30)),
                     text=label,
                     manager=manager
                 ),
                 "input": pygame_gui.elements.UITextEntryLine(
-                    relative_rect=pygame.Rect((160, y_offset), (200, 30)),
+                    relative_rect=pygame.Rect((160+x_offset, y_offset), (200, 30)),
                     manager=manager
                 )
             }
@@ -417,8 +423,8 @@ def display_ui(objects):
 
         # Submit button
         form_elements["submit"] = pygame_gui.elements.UIButton(
-            relative_rect=pygame.Rect((160, y_offset), (100, 40)),
-            text="Submit",
+            relative_rect=pygame.Rect((160+x_offset, y_offset), (100, 40)),
+            text="Create Star",
             manager=manager
         )
 
@@ -428,16 +434,17 @@ def display_ui(objects):
 
         labels = ["x", "y", "colorR", "colorG", "colorB"]
         y_offset = 120
+        x_offset = 600
 
         for label in labels:
             form_elements[label] = {
                 "label": pygame_gui.elements.UILabel(
-                    relative_rect=pygame.Rect((50, y_offset), (100, 30)),
+                    relative_rect=pygame.Rect((50+x_offset, y_offset), (100, 30)),
                     text=label,
                     manager=manager
                 ),
                 "input": pygame_gui.elements.UITextEntryLine(
-                    relative_rect=pygame.Rect((160, y_offset), (200, 30)),
+                    relative_rect=pygame.Rect((160+x_offset, y_offset), (200, 30)),
                     manager=manager
                 )
             }
@@ -445,8 +452,8 @@ def display_ui(objects):
 
         # Submit button
         form_elements["submit"] = pygame_gui.elements.UIButton(
-            relative_rect=pygame.Rect((160, y_offset), (100, 40)),
-            text="Submit",
+            relative_rect=pygame.Rect((160+x_offset, y_offset), (100, 40)),
+            text="Create Circle",
             manager=manager
         )
 
@@ -456,16 +463,17 @@ def display_ui(objects):
 
         labels = ["height", "width", "colorR", "colorG", "colorB"]
         y_offset = 120
+        x_offset = 600
 
         for label in labels:
             form_elements[label] = {
                 "label": pygame_gui.elements.UILabel(
-                    relative_rect=pygame.Rect((50, y_offset), (100, 30)),
+                    relative_rect=pygame.Rect((50+x_offset, y_offset), (100, 30)),
                     text=label,
                     manager=manager
                 ),
                 "input": pygame_gui.elements.UITextEntryLine(
-                    relative_rect=pygame.Rect((160, y_offset), (200, 30)),
+                    relative_rect=pygame.Rect((160+x_offset, y_offset), (200, 30)),
                     manager=manager
                 )
             }
@@ -473,8 +481,8 @@ def display_ui(objects):
 
         # Submit button
         form_elements["submit"] = pygame_gui.elements.UIButton(
-            relative_rect=pygame.Rect((160, y_offset), (100, 40)),
-            text="Submit",
+            relative_rect=pygame.Rect((160+x_offset, y_offset), (120, 40)),
+            text="Create Sine Wave",
             manager=manager
         )
 
@@ -499,16 +507,19 @@ def display_ui(objects):
             if event.type == pygame.USEREVENT:
                 if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == add_star_button:
+                        clear_form()
                         show_star_form = True
                         show_circle_form = False
                         show_sine_wave_form = False
                         create_star_form()
                     elif event.ui_element == add_circle_button:
+                        clear_form()
                         show_circle_form = True
                         show_star_form = False
                         show_sine_wave_form = False
                         create_circle_form()
                     elif event.ui_element == add_sine_wave_button:
+                        clear_form()
                         show_sine_wave_form = True
                         show_star_form = False
                         show_circle_form = False
