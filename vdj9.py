@@ -8,6 +8,7 @@ import random
 import pygame_gui
 import keyboard
 
+programIcon = pygame.image.load('icon.png')
 
 class Star:
 
@@ -144,6 +145,7 @@ WIDTH, HEIGHT = 1920, 1080
 def display_window(objects):
     # Initialize Pygame
     pygame.init()
+    pygame.display.set_icon(programIcon)
 
     # Set up audio stream
     CHUNK = 1024
@@ -178,7 +180,7 @@ def display_window(objects):
     # Set up Pygame window
     
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("Sound Reactive Color")
+    pygame.display.set_caption("VDJ Display")
 
     
     
@@ -301,7 +303,8 @@ global form_elements
 
 def display_ui(objects):
     pygame.init()
-
+    pygame.display.set_icon(programIcon)
+    
     def addObject(objectData):
         print("adding object to array")
         objectColor = [int(objectData["colorR"]), int(objectData["colorG"]), int(objectData["colorB"])]
@@ -337,7 +340,7 @@ def display_ui(objects):
     # Screen dimensions
     SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Add Star, Circle, and Sine Wave Forms")
+    pygame.display.set_caption("VDJ Control Panel")
 
     # Set up manager for pygame_gui
     manager = pygame_gui.UIManager((SCREEN_WIDTH, SCREEN_HEIGHT))
