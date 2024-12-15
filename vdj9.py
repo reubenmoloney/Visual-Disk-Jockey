@@ -3,11 +3,11 @@ import numpy as np
 import pygame
 import math
 import multiprocessing
-from multiprocessing import Manager
 from scipy.fft import fft
 import random
 import pygame_gui
-
+import time
+import keyboard
 
 
 class Star:
@@ -319,8 +319,8 @@ def display_ui(objects):
             ))
         elif objectData["name"] == "Circle":
             objects.append(Circle(
-                int(objectData["x"]), # x pos
-                int(objectData["y"]), # y pos
+                (int(objectData["x"]), # x pos
+                int(objectData["y"])), # y pos
                 1,# radius
                 1,# squiggle ammount
                 150, # point count
@@ -371,6 +371,21 @@ def display_ui(objects):
     add_sine_wave_button = pygame_gui.elements.UIButton(
         relative_rect=pygame.Rect((350, 50), (120, 50)),
         text="Add Sine Wave",
+        manager=manager
+    )
+
+    # create the "Clear Objects" button
+    clear_objects_button = pygame_gui.elements.UIButton(
+        relative_rect=pygame.Rect((500, 50), (120, 50)),
+        text="Clear Objects",
+        manager=manager
+    )
+
+    ####################################################################PRESET BUTTONS
+    #reuben preset
+    add_reuben_preset_button = pygame_gui.elements.UIButton(
+        relative_rect=pygame.Rect((500, 150), (120, 50)),
+        text="Reuben Preset",
         manager=manager
     )
 
@@ -519,6 +534,13 @@ def display_ui(objects):
                         show_sine_wave_form = False
                         clear_form()
                         addObject(data)
+                    elif(event.ui_element == clear_objects_button):
+                        objects[:] = []
+                    elif(event.ui_element == add_reuben_preset_button):
+                        newObjects = [    SineWave(100, 0.02, HEIGHT // 2, WIDTH, [255,255,255]),    Star(WIDTH // 3, HEIGHT // 2, 100, 100, 0, 1, [255,0,0], [0,255,0]),    Star((WIDTH // 3)*2, HEIGHT // 2, 100, 100, 0, 1, [255,1,0], [0,255,0]),    Circle((WIDTH // 2, HEIGHT // 2), 100, 0, 150, [0,0,255])]
+                        for object in newObjects:
+                            objects.append(object)
+
 
 
                         
@@ -538,15 +560,35 @@ def display_ui(objects):
 
     pygame.quit()
 
+# for opening control pannel
+def start_display_ui(objects):
+    # Function to start the display_ui process
+    process = multiprocessing.Process(target=display_ui, args=(objects,))
+    process.start()
+    return process
 
 if __name__ == "__main__":
-    with Manager() as manager:
-        # Use a managed list to share data between processes
+    with multiprocessing.Manager() as manager:
         objects = manager.list()
 
-        process_1 = multiprocessing.Process(target=display_window, args=(objects,))
-        process_2 = multiprocessing.Process(target=display_ui, args=(objects,))
-        process_1.start()
-        process_2.start()
-        process_1.join()
-        process_2.join()
+        # Start both processes
+        display_ui_process = start_display_ui(objects)
+        display_window_process = multiprocessing.Process(target=display_window, args=(objects,))
+        display_window_process.start()
+
+        try:
+            while display_window_process.is_alive():
+                # Monitor the display_ui process
+                if(keyboard.is_pressed('c')):
+                    if not display_ui_process.is_alive():
+                        print("display_ui process closed. Restarting...")
+                        display_ui_process = start_display_ui(objects)
+
+                #time.sleep(1)  # Poll every second
+        except KeyboardInterrupt:
+            print("Shutting down processes...")
+
+        # Terminate both processes
+        if display_ui_process.is_alive():
+            display_ui_process.terminate()
+        display_window_process.terminate()
