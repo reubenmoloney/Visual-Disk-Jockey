@@ -6,7 +6,6 @@ import multiprocessing
 from scipy.fft import fft
 import random
 import pygame_gui
-import time
 import keyboard
 
 
