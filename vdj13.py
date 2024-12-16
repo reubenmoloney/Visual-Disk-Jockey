@@ -310,7 +310,7 @@ def parsePresetFile(filePath):
     presetsArray = []
 
     #replace with filePath
-    f = open(filePath, "r")
+    f = open(filePath + ".txt", "r")
     rawData = f.read()
 
     presetBlocks = rawData.split("PRESET")
@@ -402,7 +402,7 @@ def savePreset(presetName, objects):
             f.write("g " + str(obj.color[1]) + "\n")
             f.write("b " + str(obj.color[2]) + "\n")
 
-presetsArray = parsePresetFile("presets.txt") #############################################################################################################REMOVE THIS LATER
+presetsArray = parsePresetFile("presets") #############################################################################################################REMOVE THIS LATER
 
 def display_ui(objects):
     pygame.init()

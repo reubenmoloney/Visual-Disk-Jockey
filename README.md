@@ -8,7 +8,7 @@ Once all wanted objects are added, you must close the control panel window as it
 The control panel can be reopened by pressing 'C' on your keyboard.
 
 ### Presets
-Once you have some objects set up, you can save them by selecting the 'Save Preset' button, throwing in a name you like, and submitting. It will be saved as a .txt file with all of that object data so you can put that on the screen again easily.
+Once you have some objects set up, you can save them by selecting the 'Save Preset' button, throwing in a name you like, and submitting. It will be saved as a .txt file with all of that object data. You can then add these object back to the screen by selecting the 'Load Preset' button, putting in the same name, and submitting. (Do not add .txt to the name, idk if you can use filepaths but it might work :/)
 
 ## Packages
 The following packages will need to be installed to run the code:
