@@ -1,0 +1,2 @@
+PRESET moon.txt
+OBJECT SineWave
