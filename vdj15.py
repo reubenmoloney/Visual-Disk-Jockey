@@ -10,6 +10,37 @@ import keyboard
 
 programIcon = pygame.image.load('icon.ico')
 
+class BackgroundColor:
+    def __init__(self, colorsArray = [(0,0,0)], cycles =False):
+        self.colorsArray = colorsArray
+        self.cycles = cycles
+        self.colorIndex = 0
+        self.currentColor = colorsArray[0]
+
+    def nextColor(self):
+        if(self.cycles):
+            if(len(self.colorsArray)>1):
+                self.colorIndex +=1
+                if self.colorIndex > (len(self.colorsArray)-1):
+                    self.colorIndex = 0
+                self.setColor(self.colorsArray[self.colorIndex])
+    
+    def setColor(self, color):
+        self.currentColor = color
+    
+    def getColor(self):
+        return self.currentColor
+    
+    def addColor(self, newColor):
+        self.colorsArray.append(newColor)
+    
+    def setCycle(self, cycle):
+        self.cycles = cycle
+
+            
+    
+
+
 class Star:
 
     def __init__(self, x, y, width, height, rotation, scale, color1, color2):
@@ -184,7 +215,7 @@ WIDTH, HEIGHT = 1920, 1080
 #objects = [    SineWave(100, 0.02, HEIGHT // 2, WIDTH, [255,255,255]),    Star(WIDTH // 3, HEIGHT // 2, 100, 100, 0, 1, [255,0,0], [0,255,0]),    Star((WIDTH // 3)*2, HEIGHT // 2, 100, 100, 0, 1, [255,1,0], [0,255,0]),    Circle((WIDTH // 2, HEIGHT // 2), 100, 0, 150, [0,0,255])]
 
 
-def display_window(objects):
+def display_window(objects,background_color_object):
     # Initialize Pygame
     pygame.init()
     pygame.display.set_icon(programIcon)
@@ -195,8 +226,6 @@ def display_window(objects):
     CHANNELS = 1
     RATE = 44100
 
-    # background color
-    backgroundColor = [0,0,0]
 
     #global roation
     rotRight = 0
@@ -330,6 +359,14 @@ def display_window(objects):
                 obj.setSquiggleAmount(volume*100)
             
             objects[i] = obj
+
+        # calculate background color
+        if(volume >= 0.7):
+            background_color_object.nextColor()
+        
+        unCalcBackgroundColor = background_color_object.getColor()
+        backgroundColor = [(unCalcBackgroundColor[0]*volume), (unCalcBackgroundColor[1]*volume), (unCalcBackgroundColor[2]*volume)]
+
         # background color
         screen.fill(backgroundColor)
 
@@ -921,7 +958,7 @@ def display_ui(objects):
     pygame.quit()
 
 # for opening control pannel
-def start_display_ui(objects):
+def start_display_ui(objects,background_color_object):
     # Function to start the display_ui process
     process = multiprocessing.Process(target=display_ui, args=(objects,))
     process.start()
@@ -931,9 +968,12 @@ if __name__ == "__main__":
     with multiprocessing.Manager() as manager:
         objects = manager.list()
 
+        background_color_object = manager.Namespace()
+        background_color_object = BackgroundColor([[0,50,255],[255,0,255],], True)
+
         # Start both processes
-        display_ui_process = start_display_ui(objects)
-        display_window_process = multiprocessing.Process(target=display_window, args=(objects,))
+        display_ui_process = start_display_ui(objects,background_color_object)
+        display_window_process = multiprocessing.Process(target=display_window, args=(objects,background_color_object))
         display_window_process.start()
 
         try:
