@@ -12,7 +12,7 @@ programIcon = pygame.image.load('icon.ico')
 
 class BackgroundColor:
     def __init__(self, colorsArray = [(0,0,0)], cycles =False):
-        self.colorsArray = colorsArray
+        self.colorsArray = self.handleBadColors(colorsArray)
         self.cycles = cycles
         self.colorIndex = 0
         self.currentColor = colorsArray[0]
@@ -39,6 +39,17 @@ class BackgroundColor:
             self.cycles = False
         else:
             self.cycles = True
+    
+    def handleBadColors(colors):
+        for color in colors:
+            for val in color:
+                if type(val) != int:
+                    val = 0
+                elif val>255:
+                    val = 255
+                elif val<0:
+                    val = 0
+        return colors
 
             
     
@@ -386,14 +397,16 @@ def display_window(objects,background_color_object):
                 object = newObj
             else:
                 object.draw(screen)"""
-        for loop in range(len(objects)):
-            if(type(objects[loop]) is TrianglesEffect):
-                newObj = objects[loop]
-                newObj.draw(screen)
-                objects[loop] = newObj
-            else:
-                objects[loop].draw(screen)
-
+        try:
+            for loop in range(len(objects)):
+                if(type(objects[loop]) is TrianglesEffect):
+                    newObj = objects[loop]
+                    newObj.draw(screen)
+                    objects[loop] = newObj
+                else:
+                    objects[loop].draw(screen)
+        except:
+            print("Multiprocessing issue again")
         # Update the display
         pygame.display.flip()
 
@@ -407,69 +420,71 @@ global form_elements
 
 def parsePresetFile(filePath):
     presetsArray = []
+    try:
+        #replace with filePath
+        f = open(filePath + ".txt", "r")
+        rawData = f.read()
+        f.close()
 
-    #replace with filePath
-    f = open(filePath + ".txt", "r")
-    rawData = f.read()
-    f.close()
+        presetBlocks = rawData.split("PRESET")
 
-    presetBlocks = rawData.split("PRESET")
-
-    #loop through all the presets
-    for preset in presetBlocks:
-        if preset == '':
-            continue
-        
-        objectsArray = []
-        #split into individual objects
-        objects1 = preset.split("OBJECT")
-
-        presetName = objects1.pop(0).split("\n")[0]
-
-        for object1 in objects1:
-            #split into lines
-            lines = object1.split("\n")
-            ##check what kind of object it is
-            if(lines[0] == " Star"):
-                #noting
-                x = int(lines[1].split(" ")[1])
-                y = int(lines[2].split(" ")[1])
-                w = int(lines[3].split(" ")[1])
-                h = int(lines[4].split(" ")[1])
-                r = int(lines[5].split(" ")[1])
-                g = int(lines[6].split(" ")[1])
-                b = int(lines[7].split(" ")[1])
-
-                objectsArray.append(Star(x,y,w,h,1,1,[r,g,b],[r,g,b]))
-
-            elif(lines[0] == " Circle"):
-                
-                x = int(lines[1].split(" ")[1])
-                y = int(lines[2].split(" ")[1])
-                r = int(lines[3].split(" ")[1])
-                g = int(lines[4].split(" ")[1])
-                b = int(lines[5].split(" ")[1])
-
-                objectsArray.append(Circle([x,y],1,1,150,[r,g,b]))
-                    
-            elif(lines[0]) == " SineWave":
-                h = int(lines[1].split(" ")[1])
-                w = int(lines[2].split(" ")[1])
-                r = int(lines[3].split(" ")[1])
-                g = int(lines[4].split(" ")[1])
-                b = int(lines[5].split(" ")[1])
-
-                objectsArray.append(SineWave(1,1,h,w,[r,g,b]))
+        #loop through all the presets
+        for preset in presetBlocks:
+            if preset == '':
+                continue
             
-            elif(lines[0]) == " TrianglesEffect":
-                c = int(lines[1].split(" ")[1])#triangles count
-                r = int(lines[2].split(" ")[1])
-                g = int(lines[3].split(" ")[1])
-                b = int(lines[4].split(" ")[1])
+            objectsArray = []
+            #split into individual objects
+            objects1 = preset.split("OBJECT")
 
-                objectsArray.append(TrianglesEffect(c,[r,g,b]))
-        
-        presetsArray.append(objectsArray)
+            presetName = objects1.pop(0).split("\n")[0]
+
+            for object1 in objects1:
+                #split into lines
+                lines = object1.split("\n")
+                ##check what kind of object it is
+                if(lines[0] == " Star"):
+                    #noting
+                    x = int(lines[1].split(" ")[1])
+                    y = int(lines[2].split(" ")[1])
+                    w = int(lines[3].split(" ")[1])
+                    h = int(lines[4].split(" ")[1])
+                    r = int(lines[5].split(" ")[1])
+                    g = int(lines[6].split(" ")[1])
+                    b = int(lines[7].split(" ")[1])
+
+                    objectsArray.append(Star(x,y,w,h,1,1,[r,g,b],[r,g,b]))
+
+                elif(lines[0] == " Circle"):
+                    
+                    x = int(lines[1].split(" ")[1])
+                    y = int(lines[2].split(" ")[1])
+                    r = int(lines[3].split(" ")[1])
+                    g = int(lines[4].split(" ")[1])
+                    b = int(lines[5].split(" ")[1])
+
+                    objectsArray.append(Circle([x,y],1,1,150,[r,g,b]))
+                        
+                elif(lines[0]) == " SineWave":
+                    h = int(lines[1].split(" ")[1])
+                    w = int(lines[2].split(" ")[1])
+                    r = int(lines[3].split(" ")[1])
+                    g = int(lines[4].split(" ")[1])
+                    b = int(lines[5].split(" ")[1])
+
+                    objectsArray.append(SineWave(1,1,h,w,[r,g,b]))
+                
+                elif(lines[0]) == " TrianglesEffect":
+                    c = int(lines[1].split(" ")[1])#triangles count
+                    r = int(lines[2].split(" ")[1])
+                    g = int(lines[3].split(" ")[1])
+                    b = int(lines[4].split(" ")[1])
+
+                    objectsArray.append(TrianglesEffect(c,[r,g,b]))
+            
+            presetsArray.append(objectsArray)
+    except:
+        print(filePath, " preset file does not exist")
 
     return presetsArray
 

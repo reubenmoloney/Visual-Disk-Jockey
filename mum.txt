@@ -1,0 +1,13 @@
+PRESET mum.txt
+OBJECT Circle
+x 100
+y 100
+r 188
+g 0
+b 255
+OBJECT SineWave
+h 100
+w 1920
+r 255
+g 255
+b 255
